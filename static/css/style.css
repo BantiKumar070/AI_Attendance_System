@@ -1,0 +1,477 @@
+/* ============================================================
+   AI-Powered Automatic Attendance System
+   static/css/style.css
+
+   Design concept: "the viewfinder" — every screen borrows the visual
+   language of a camera lining up a face: corner brackets, a scanning
+   line, a signal-teal focus color for anything "active" or "live",
+   set against deep ink and warm-gold accents for attendance/roll-call
+   moments (present/late). Space Grotesk carries headings and numbers;
+   Inter carries body copy and dense tabular data.
+   ============================================================ */
+
+:root {
+    /* ---- Core palette ---- */
+    --ink:        #12172B;   /* sidebar, headings, high-contrast text */
+    --ink-soft:   #232A45;   /* sidebar hover surfaces */
+    --paper:      #F3F5FA;   /* page background */
+    --surface:    #FFFFFF;   /* cards */
+    --line:       #E4E7F0;   /* hairline borders */
+    --muted:      #6B7280;   /* secondary text */
+
+    /* ---- Signal colors (grounded in the "scan" concept) ---- */
+    --signal:     #00B8A9;   /* teal — active/live/primary */
+    --signal-rgb: 0, 184, 169;
+    --focus:      #FF6A3D;   /* warm coral — capture/record/attention */
+    --focus-rgb:  255, 106, 61;
+    --gold:       #F0A93B;   /* roll-call gold — "late" status */
+    --gold-rgb:   240, 169, 59;
+    --present:    #1FA97A;   /* present/success green */
+    --present-rgb:31, 169, 122;
+    --danger:     #E0483E;   /* errors, destructive actions */
+    --danger-rgb: 224, 72, 62;
+
+    --sidebar-width: 264px;
+    --navbar-height: 64px;
+    --radius: 14px;
+    --radius-sm: 10px;
+
+    /* ---- Bootstrap theme overrides (cascades into buttons, badges,
+       alerts, text-*/bg-* utilities without editing every template) ---- */
+    --bs-primary: var(--signal);
+    --bs-primary-rgb: var(--signal-rgb);
+    --bs-success: var(--present);
+    --bs-success-rgb: var(--present-rgb);
+    --bs-danger: var(--danger);
+    --bs-danger-rgb: var(--danger-rgb);
+    --bs-warning: var(--gold);
+    --bs-warning-rgb: var(--gold-rgb);
+    --bs-info: #5B6EF5;
+    --bs-info-rgb: 91, 110, 245;
+    --bs-link-color: var(--signal);
+    --bs-link-hover-color: #009488;
+    --bs-body-font-family: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+    --bs-border-radius: var(--radius-sm);
+    --bs-border-radius-lg: var(--radius);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    background-color: var(--paper);
+    font-family: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6, .page-title, .stat-value, .sidebar-brand {
+    font-family: "Space Grotesk", "Inter", sans-serif;
+    letter-spacing: -0.01em;
+}
+
+code { color: var(--focus); }
+
+/* ---------------- App Shell Layout ---------------- */
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.app-sidebar {
+    width: var(--sidebar-width);
+    background: var(--ink);
+    color: #B7BDD6;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1030;
+    transition: transform 0.25s ease;
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 22px 20px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-brand i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: rgba(var(--signal-rgb), 0.16);
+    color: var(--signal);
+    font-size: 1.15rem;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 14px 12px;
+    overflow-y: auto;
+}
+
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    margin-bottom: 2px;
+    color: #B7BDD6;
+    font-size: 0.92rem;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border-left: none;
+    transition: all 0.15s ease;
+}
+
+.sidebar-nav .nav-link i { font-size: 1.05rem; width: 20px; text-align: center; }
+
+.sidebar-nav .nav-link:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+}
+
+.sidebar-nav .nav-link.active {
+    background: rgba(var(--signal-rgb), 0.18);
+    color: #fff;
+    box-shadow: inset 3px 0 0 var(--signal);
+}
+
+.sidebar-footer {
+    padding: 16px 22px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.app-navbar {
+    height: var(--navbar-height);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.page-title { font-weight: 600; font-size: 1.05rem; }
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.app-main { flex: 1; }
+
+@media (max-width: 991px) {
+    .app-sidebar { transform: translateX(-100%); }
+    .app-sidebar.show { transform: translateX(0); }
+    .app-content { margin-left: 0; }
+}
+
+/* ---------------- Flash Messages ---------------- */
+.flash-container { margin-bottom: 16px; }
+.flash-container .alert i { margin-right: 8px; }
+.flash-container .alert { border: none; border-radius: var(--radius-sm); }
+
+/* ---------------- Auth Pages ---------------- */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 20% 20%, #1B2245 0%, var(--ink) 55%);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Faint scan-grid atmosphere behind the login card — quiet, not loud */
+.auth-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(var(--signal-rgb), 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--signal-rgb), 0.06) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(circle at center, black, transparent 70%);
+}
+
+.auth-card {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 44px 40px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.45);
+}
+
+.auth-icon-frame {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.auth-icon {
+    font-size: 1.9rem;
+    color: var(--signal);
+}
+
+/* Viewfinder corner brackets — the signature motif, reused on the
+   auth icon and on every webcam frame in the app. */
+.viewfinder {
+    position: relative;
+}
+.viewfinder::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    pointer-events: none;
+    background:
+        linear-gradient(to right, var(--signal) 2px, transparent 2px) top left / 16px 2px no-repeat,
+        linear-gradient(to bottom, var(--signal) 2px, transparent 2px) top left / 2px 16px no-repeat,
+        linear-gradient(to left, var(--signal) 2px, transparent 2px) top right / 16px 2px no-repeat,
+        linear-gradient(to bottom, var(--signal) 2px, transparent 2px) top right / 2px 16px no-repeat,
+        linear-gradient(to right, var(--signal) 2px, transparent 2px) bottom left / 16px 2px no-repeat,
+        linear-gradient(to top, var(--signal) 2px, transparent 2px) bottom left / 2px 16px no-repeat,
+        linear-gradient(to left, var(--signal) 2px, transparent 2px) bottom right / 16px 2px no-repeat,
+        linear-gradient(to top, var(--signal) 2px, transparent 2px) bottom right / 2px 16px no-repeat;
+}
+.auth-icon-frame.viewfinder::after { inset: 0; opacity: 0.8; }
+
+/* ---------------- Stat Cards (Dashboard) ---------------- */
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(18, 23, 43, 0.05);
+    border-top: 3px solid transparent;
+    height: 100%;
+}
+
+.stat-icon {
+    font-size: 1.7rem;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.1;
+}
+
+.stat-label {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.bg-primary-soft { border-top-color: var(--signal); }
+.bg-primary-soft .stat-icon { background: rgba(var(--signal-rgb), 0.12); color: var(--signal); }
+
+.bg-success-soft { border-top-color: var(--present); }
+.bg-success-soft .stat-icon { background: rgba(var(--present-rgb), 0.12); color: var(--present); }
+
+.bg-danger-soft { border-top-color: var(--danger); }
+.bg-danger-soft .stat-icon { background: rgba(var(--danger-rgb), 0.12); color: var(--danger); }
+
+.bg-info-soft { border-top-color: var(--gold); }
+.bg-info-soft .stat-icon { background: rgba(var(--gold-rgb), 0.14); color: var(--gold); }
+
+/* ---------------- Cards ---------------- */
+.card {
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: 0 2px 12px rgba(18, 23, 43, 0.04);
+}
+.card-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    font-weight: 600;
+    border-radius: var(--radius) var(--radius) 0 0 !important;
+    padding: 16px 20px;
+}
+.table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    border-top: none;
+    font-weight: 600;
+}
+.table td, .table th { vertical-align: middle; }
+
+.btn { border-radius: var(--radius-sm); font-weight: 500; }
+.btn-primary { --bs-btn-color: #fff; }
+
+/* ---------------- Webcam / Capture UI ---------------- */
+.webcam-frame {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 4 / 3;
+    background: var(--ink);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.webcam-frame video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* mirror, feels natural for a front camera */
+}
+
+.webcam-frame canvas#overlayCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Corner brackets, inset so they read against any footage */
+.webcam-frame::after {
+    content: "";
+    position: absolute;
+    inset: 14px;
+    pointer-events: none;
+    z-index: 2;
+    background:
+        linear-gradient(to right, var(--signal) 3px, transparent 3px) top left / 22px 3px no-repeat,
+        linear-gradient(to bottom, var(--signal) 3px, transparent 3px) top left / 3px 22px no-repeat,
+        linear-gradient(to left, var(--signal) 3px, transparent 3px) top right / 22px 3px no-repeat,
+        linear-gradient(to bottom, var(--signal) 3px, transparent 3px) top right / 3px 22px no-repeat,
+        linear-gradient(to right, var(--signal) 3px, transparent 3px) bottom left / 22px 3px no-repeat,
+        linear-gradient(to top, var(--signal) 3px, transparent 3px) bottom left / 3px 22px no-repeat,
+        linear-gradient(to left, var(--signal) 3px, transparent 3px) bottom right / 22px 3px no-repeat,
+        linear-gradient(to top, var(--signal) 3px, transparent 3px) bottom right / 3px 22px no-repeat;
+    filter: drop-shadow(0 0 4px rgba(var(--signal-rgb), 0.6));
+}
+
+/* Scanning line sweep — the atmospheric signature of every camera view */
+.webcam-frame::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    height: 2px;
+    top: 14px;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(var(--signal-rgb), 0.9), transparent);
+    box-shadow: 0 0 8px rgba(var(--signal-rgb), 0.8);
+    animation: scan-sweep 3.2s ease-in-out infinite;
+}
+
+@keyframes scan-sweep {
+    0%   { top: 14px; opacity: 0.9; }
+    50%  { top: calc(100% - 16px); opacity: 0.9; }
+    52%  { opacity: 0; }
+    98%  { opacity: 0; }
+    100% { top: 14px; opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .webcam-frame::before { animation: none; display: none; }
+}
+
+.overlay-msg {
+    position: absolute;
+    bottom: 26px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(18, 23, 43, 0.75);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    z-index: 3;
+}
+
+/* Small pulsing "live" dot — used near the recognition status label */
+.live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--focus);
+    box-shadow: 0 0 0 rgba(var(--focus-rgb), 0.6);
+    animation: live-pulse 1.6s infinite;
+}
+@keyframes live-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(var(--focus-rgb), 0.55); }
+    70%  { box-shadow: 0 0 0 8px rgba(var(--focus-rgb), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--focus-rgb), 0); }
+}
+
+/* ---------------- Error Pages ---------------- */
+.error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    gap: 10px;
+    background: var(--paper);
+}
+.error-code {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 6rem;
+    font-weight: 700;
+    color: var(--signal);
+    margin: 0;
+}
+.error-message {
+    color: var(--muted);
+    margin-bottom: 20px;
+}
+
+/* ---------------- Recognition Log List ---------------- */
+#recognitionLog .list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    border-color: var(--line);
+}

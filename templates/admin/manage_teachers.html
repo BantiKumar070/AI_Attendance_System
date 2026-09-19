@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Manage Teachers{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Teacher Accounts</h5>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTeacherModal">
+        <i class="bi bi-person-plus-fill"></i> Add Teacher
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Username</th><th>Full Name</th><th>Email</th><th>Teaches</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                {% for t in teachers %}
+                <tr>
+                    <td>{{ t.username }}</td>
+                    <td>{{ t.full_name }}</td>
+                    <td>{{ t.email }}</td>
+                    <td>
+                        {% for s in t.assigned_subjects %}
+                        <span class="badge bg-secondary mb-1">{{ s.name }} — {{ s.class_room.display_name() if s.class_room else 'No class' }}</span>
+                        {% else %}
+                        <span class="text-muted small">No subjects assigned</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if t.is_locked() %}
+                        <span class="badge bg-danger"><i class="bi bi-lock-fill"></i> Locked (24h)</span>
+                        {% elif t.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Deactivated</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#assignModal{{ t.id }}">
+                            <i class="bi bi-diagram-3"></i> Assign Subjects
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resetPwdModal{{ t.id }}">
+                            <i class="bi bi-key-fill"></i> Reset Password
+                        </button>
+                        {% if t.is_locked() %}
+                        <form action="{{ url_for('teacher.unlock', admin_id=t.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Unlock this account now?');">
+                            <button class="btn btn-sm btn-outline-warning"><i class="bi bi-unlock-fill"></i> Unlock</button>
+                        </form>
+                        {% endif %}
+                        {% if t.is_active %}
+                        <form action="{{ url_for('teacher.deactivate', admin_id=t.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Deactivate this teacher account?');">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-slash-circle"></i></button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <div class="modal fade" id="resetPwdModal{{ t.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="{{ url_for('teacher.reset_password', admin_id=t.id) }}" method="POST">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Reset Password — {{ t.full_name }}</h5>
+                                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="text-muted small">Set a new password for this teacher. Share it with them securely — they don't need to know their old one.</p>
+                                    <div class="mb-2">
+                                        <label class="form-label">New Password</label>
+                                        <input type="password" name="new_password" class="form-control" required minlength="8" placeholder="Min. 8 chars, letters + numbers">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Confirm New Password</label>
+                                        <input type="password" name="confirm_password" class="form-control" required minlength="8">
+                                    </div>
+                                </div>
+                                <div class="modal-footer"><button class="btn btn-primary" type="submit">Reset Password</button></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="assignModal{{ t.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <form action="{{ url_for('teacher.assign', admin_id=t.id) }}" method="POST">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Assign Subjects — {{ t.full_name }}</h5>
+                                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="text-muted small">
+                                        Select every subject this teacher takes attendance for. If they teach the
+                                        same subject to multiple departments/classes (e.g. Math for both B.Tech and
+                                        BCA), those exist as separate subjects here — select both.
+                                    </p>
+                                    {% if subjects_by_class %}
+                                    {% for group in subjects_by_class %}
+                                    <div class="mb-3">
+                                        <div class="fw-semibold small text-uppercase text-muted mb-1">{{ group.label }}</div>
+                                        {% for s in group.subjects %}
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" name="subject_ids" value="{{ s.id }}" id="subj{{ t.id }}_{{ s.id }}"
+                                                   {{ 'checked' if s.id in t.assigned_subject_ids() }}>
+                                            <label class="form-check-label" for="subj{{ t.id }}_{{ s.id }}">{{ s.name }} <span class="text-muted small">({{ s.code }})</span></label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endfor %}
+                                    {% else %}
+                                    <p class="text-muted">No subjects exist yet — create classes and subjects first.</p>
+                                    {% endif %}
+                                </div>
+                                <div class="modal-footer"><button class="btn btn-primary" type="submit">Save</button></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No teacher accounts created yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="createTeacherModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ url_for('teacher.create') }}" method="POST">
+                <div class="modal-header"><h5 class="modal-title">Add Teacher</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="row g-2">
+                        <div class="col-md-6"><label class="form-label">Full Name *</label><input class="form-control" name="full_name" required></div>
+                        <div class="col-md-6"><label class="form-label">Username *</label><input class="form-control" name="username" required></div>
+                        <div class="col-md-6"><label class="form-label">Email *</label><input type="email" class="form-control" name="email" required></div>
+                        <div class="col-md-6"><label class="form-label">Password *</label><input type="password" class="form-control" name="password" placeholder="Min. 8 chars, letters + numbers" required></div>
+                    </div>
+                    <hr>
+                    <label class="form-label">Subjects Taught</label>
+                    <p class="text-muted small">
+                        Pick every subject this teacher will take attendance for. The same subject taught to
+                        different departments/classes appears as separate entries below.
+                    </p>
+                    {% if subjects_by_class %}
+                    {% for group in subjects_by_class %}
+                    <div class="mb-3">
+                        <div class="fw-semibold small text-uppercase text-muted mb-1">{{ group.label }}</div>
+                        {% for s in group.subjects %}
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="subject_ids" value="{{ s.id }}" id="newsubj{{ s.id }}">
+                            <label class="form-check-label" for="newsubj{{ s.id }}">{{ s.name }} <span class="text-muted small">({{ s.code }})</span></label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted small">No subjects exist yet — you can assign subjects later from this page.</p>
+                    {% endif %}
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary" type="submit">Create Teacher</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

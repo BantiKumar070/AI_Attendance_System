@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mx-auto" style="max-width: 700px;">
+    <div class="card-header"><i class="bi bi-gear-fill"></i> System Settings</div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Institution Name</label>
+                <input type="text" name="institution_name" class="form-control" value="{{ settings.get('institution_name', '') }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Face Recognition Tolerance (lower = stricter, 0.3 - 0.6)</label>
+                <input type="number" step="0.01" min="0.3" max="0.6" name="face_recognition_tolerance" class="form-control" value="{{ settings.get('face_recognition_tolerance', '0.45') }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Duplicate Attendance Cooldown (minutes)</label>
+                <input type="number" min="1" max="60" name="attendance_cooldown_minutes" class="form-control" value="{{ settings.get('attendance_cooldown_minutes', '5') }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Late Mark Cutoff Hour (24h format, e.g. 9 = 9 AM)</label>
+                <input type="number" min="0" max="23" name="late_cutoff_hour" class="form-control" value="{{ settings.get('late_cutoff_hour', '') }}" placeholder="Leave blank to disable">
+                <div class="form-text">If set, any attendance marked at or after this hour is labeled "Late" instead of "Present". Leave blank if you don't need this — every mark will simply be "Present".</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Dataset Samples per Student</label>
+                <input type="number" min="20" max="300" name="dataset_samples_per_student" class="form-control" value="{{ settings.get('dataset_samples_per_student', '100') }}">
+            </div>
+            <div class="mb-3 form-check form-switch">
+                <input type="checkbox" name="enable_email_notifications" value="true" class="form-check-input" role="switch"
+                       {{ 'checked' if settings.get('enable_email_notifications') == 'true' }}>
+                <input type="hidden" name="enable_email_notifications" value="false">
+                <label class="form-check-label">Enable Email Notifications</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-save"></i> Save Settings</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

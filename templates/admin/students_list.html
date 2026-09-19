@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Students{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="GET">
+        <input type="text" name="q" class="form-control" placeholder="Search by name, roll no, email..." value="{{ request.args.get('q', '') }}">
+        <select name="class_id" class="form-select">
+            <option value="">All Classes</option>
+            {% for c in classes %}
+            <option value="{{ c.id }}" {{ 'selected' if request.args.get('class_id') == c.id | string }}>{{ c.display_name() }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{{ url_for('student.register') }}" class="btn btn-primary">
+        <i class="bi bi-person-plus-fill"></i> Register Student
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Roll No.</th><th>Name</th><th>Class</th><th>Email</th><th>Face Enrolled</th><th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in pagination.items %}
+                <tr>
+                    <td>{{ student.roll_number }}</td>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.class_room.display_name() if student.class_room else '-' }}</td>
+                    <td>{{ student.email or '-' }}</td>
+                    <td>
+                        {% if student.face_registered %}
+                            <span class="badge bg-success"><i class="bi bi-check-lg"></i> Enrolled</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('student.capture', student_id=student.id) }}" class="btn btn-sm btn-outline-info" title="Capture Face">
+                            <i class="bi bi-camera"></i>
+                        </a>
+                        <a href="{{ url_for('student.edit', student_id=student.id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="{{ url_for('student.delete', student_id=student.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this student permanently?');">
+                            <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No students found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if pagination.pages > 1 %}
+<nav class="mt-3">
+    <ul class="pagination">
+        {% for page_num in range(1, pagination.pages + 1) %}
+        <li class="page-item {{ 'active' if page_num == pagination.page }}">
+            <a class="page-link" href="{{ url_for('student.list_students', page=page_num, q=request.args.get('q', ''), class_id=request.args.get('class_id', '')) }}">{{ page_num }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

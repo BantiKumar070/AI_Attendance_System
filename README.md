@@ -1,0 +1,210 @@
+# AI-Powered Automatic Attendance System Using Face Recognition
+
+A production-ready, full-stack web application that automates classroom/office
+attendance using real-time face recognition. Built with **Flask**, **OpenCV**,
+**face_recognition**, and **Bootstrap 5**, following clean MVC architecture
+(Routes → Controllers → Services → Models).
+
+---
+
+## ✨ Features
+
+| # | Feature | # | Feature |
+|---|---------|---|---------|
+| 1 | Admin Login (session + JWT) | 11 | Export to Excel & PDF |
+| 2 | Student Registration | 12 | Student Management |
+| 3 | Webcam Face Capture (100 images) | 13 | Subject Management |
+| 4 | Dataset Generator | 14 | Class Management |
+| 5 | Face Encoding Generator (128-d vectors) | 15 | Dashboard with Analytics |
+| 6 | Real-time Face Recognition | 16 | Charts (Chart.js) |
+| 7 | Automatic Attendance Marking | 17 | Email Notifications (optional) |
+| 8 | Duplicate Attendance Prevention | 18 | System Logs (audit trail) |
+| 9 | Attendance History | 19 | Settings Panel |
+| 10 | Attendance Search/Filter | | REST API with JWT |
+
+---
+
+## 🏗️ Architecture
+
+```
+Browser (Webcam)
+   │  base64 JPEG frames over AJAX
+   ▼
+routes/          → HTTP layer (Flask Blueprints)
+   ▼
+controllers/     → Request/response shaping, orchestration
+   ▼
+services/        → Business logic (face recognition, attendance rules, exports)
+   ▼
+models/          → SQLAlchemy ORM (SQLite by default, MySQL-ready)
+```
+
+**Face Recognition Pipeline:**
+```
+Register Student → Capture 100 Images → Generate 128-d Encodings
+→ Store in DB + trainer/encodings.pickle cache → Live Webcam Stream
+→ Detect Face → Compare Encodings → Recognize → Mark Attendance
+→ DB UNIQUE constraint + in-memory cooldown prevent duplicates
+```
+
+---
+
+## 📁 Project Structure
+
+```
+attendance-system/
+├── app.py                     # Flask application factory & entry point
+├── config.py                  # Environment-based configuration
+├── database_schema.sql        # Reference SQL schema
+├── requirements.txt
+├── seed_sample_data.py        # Optional: seed demo classes/students
+├── .env.example
+├── models/                    # SQLAlchemy ORM models
+├── routes/                    # Flask Blueprints (HTTP layer)
+├── controllers/               # Request orchestration (MVC "Controller")
+├── services/                  # Business logic (face recognition, attendance, exports)
+├── utils/                     # JWT, decorators, validators, logger, helpers
+├── templates/                 # Jinja2 HTML (Bootstrap 5)
+│   ├── auth/, admin/, partials/, errors/
+├── static/
+│   ├── css/style.css
+│   └── js/ (main.js, webcam.js, live_recognition.js, charts.js)
+├── uploads/, dataset/, trainer/, recognizer/, exports/, reports/, logs/
+└── tests/                     # pytest test-suite
+```
+
+---
+
+## 🔧 Installation Guide
+
+### 1. Prerequisites
+- Python **3.12+**
+- `cmake` and a C++ compiler (required to build `dlib`, a dependency of `face_recognition`)
+  - **Ubuntu/Debian:** `sudo apt-get install cmake build-essential`
+  - **macOS:** `brew install cmake`
+  - **Windows:** Install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) + [CMake](https://cmake.org/download/)
+- A working webcam (for capture/recognition features)
+
+### 2. Clone & set up a virtual environment
+```bash
+cd attendance-system
+python3 -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+```
+
+### 3. Install dependencies
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+> `dlib` compilation can take 5–15 minutes on first install — this is normal.
+
+### 4. Configure environment variables
+```bash
+cp .env.example .env
+# then edit .env — at minimum change SECRET_KEY, JWT_SECRET_KEY, and
+# DEFAULT_ADMIN_PASSWORD before deploying anywhere public.
+```
+
+### 5. Run the application
+```bash
+python app.py
+```
+The app auto-creates all database tables and a default admin account on first
+run. Visit **http://localhost:5000**.
+
+**Default login:** `admin` / `Admin@123` — **change this immediately.**
+
+### 6. (Optional) Seed demo data
+```bash
+python seed_sample_data.py
+```
+
+### 7. Run tests
+```bash
+pytest
+```
+
+---
+
+## 🚀 Production Deployment
+
+```bash
+# Using gunicorn (Linux/macOS)
+export APP_ENV=production
+gunicorn -w 4 -b 0.0.0.0:8000 "app:create_app()"
+
+# Using waitress (Windows-friendly)
+waitress-serve --port=8000 "app:create_app()"
+```
+
+### Switching to MySQL
+1. `pip install pymysql`
+2. Set in `.env`:
+   ```
+   DATABASE_URL=mysql+pymysql://user:password@localhost:3306/attendance_db
+   ```
+3. Restart the app — SQLAlchemy will create the schema automatically.
+
+---
+
+## 🔌 REST API (JWT)
+
+Base URL: `/api/v1`
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|--------------|
+| POST | `/auth/login` | — | Returns a JWT bearer token |
+| GET | `/health` | — | Health check |
+| GET | `/students` | Bearer | Paginated student list (`?q=&class_id=&page=`) |
+| GET | `/students/<id>` | Bearer | Single student details |
+| POST | `/students` | Bearer | Register a student |
+| GET | `/attendance` | Bearer | Paginated attendance history |
+| POST | `/attendance/mark` | Bearer | Mark attendance `{student_id, subject_id?}` |
+
+Example:
+```bash
+curl -X POST http://localhost:5000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"Admin@123"}'
+
+curl http://localhost:5000/api/v1/students \
+  -H "Authorization: Bearer <token>"
+```
+
+---
+
+## ⚙️ Useful CLI Commands
+
+```bash
+flask create-admin          # Interactively create another admin account
+flask rebuild-encodings     # Rebuild the trainer/encodings.pickle cache from the DB
+flask db init / migrate / upgrade   # Flask-Migrate schema migrations
+```
+
+---
+
+## 🔐 Security Notes
+
+- Passwords are hashed with **bcrypt** (never stored in plain text).
+- Admin dashboard uses signed session cookies; the REST API uses **JWT** bearer tokens.
+- Duplicate attendance is prevented at the **database level** (UNIQUE constraint
+  on `student_id + subject_id + attendance_date`), not just in application logic.
+- Change `SECRET_KEY`, `JWT_SECRET_KEY`, and the default admin password before
+  any real deployment.
+
+---
+
+## 🧠 Tech Stack
+
+**Backend:** Python 3.12+, Flask, SQLAlchemy, OpenCV, face_recognition, NumPy, Pandas, PyJWT, bcrypt
+**Frontend:** HTML5, CSS3, Bootstrap 5, vanilla JavaScript, Jinja2, Chart.js
+**Database:** SQLite (default) — MySQL-ready via `DATABASE_URL`
+**Exports:** openpyxl/XlsxWriter (Excel), ReportLab (PDF)
+
+---
+
+## 📄 License
+
+This project is provided as an educational/reference implementation. Adapt and
+license it as appropriate for your own use case.

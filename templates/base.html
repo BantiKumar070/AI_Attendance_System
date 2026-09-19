@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}Dashboard{% endblock %} | AI Attendance System
+    </title>
+
+    <!-- Bootstrap 5 -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+    />
+    <!-- Typography: Space Grotesk (display) + Inter (body/data) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Custom styles -->
+    <link
+      href="{{ url_for('static', filename='css/style.css') }}"
+      rel="stylesheet"
+    />
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    {% if session.get('admin_id') %} {% set page_heading = self.title() %}
+    <div class="app-wrapper">
+      {% include "partials/sidebar.html" %}
+
+      <div class="app-content">
+        {% include "partials/navbar.html" %}
+
+        <main class="app-main p-4">
+          {% include "partials/flash_messages.html" %} {% block content %}{%
+          endblock %}
+        </main>
+      </div>
+    </div>
+
+    <!-- Session Timeout Warning Modal -->
+    <div
+      class="modal fade"
+      id="sessionTimeoutModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header border-0">
+            <h5 class="modal-title">
+              <i class="bi bi-clock-history text-warning"></i> Session Expiring
+            </h5>
+          </div>
+          <div class="modal-body">
+            <p class="mb-1">
+              You've been inactive for a while. For security, you'll be logged
+              out automatically in:
+            </p>
+            <h2 class="text-center text-danger my-3">
+              <span id="sessionCountdown">60</span>s
+            </h2>
+          </div>
+          <div class="modal-footer border-0">
+            <a
+              href="{{ url_for('auth.logout') }}"
+              class="btn btn-outline-secondary"
+              >Log Out Now</a
+            >
+            <button type="button" id="extendSessionBtn" class="btn btn-primary">
+              <i class="bi bi-arrow-clockwise"></i> Stay Logged In
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SESSION_LIFETIME_SECONDS = {{ config.PERMANENT_SESSION_LIFETIME.total_seconds() | int }};
+      const SESSION_WARNING_SECONDS = {{ config.SESSION_WARNING_SECONDS }};
+      const SESSION_PING_URL = "{{ url_for('auth.session_ping') }}";
+      const LOGOUT_URL = "{{ url_for('auth.logout') }}";
+    </script>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/boo
+    tstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/session_timeout.js') }}"></script>
+    {% else %} {% include "partials/flash_messages.html" %} {% block
+    guest_content %}{% endblock %} {% endif %}
+
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

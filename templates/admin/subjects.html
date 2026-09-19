@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Subjects{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Subject Management</h5>
+    {% if session.get('role') in ['admin', 'superadmin'] %}
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSubjectModal">
+        <i class="bi bi-plus-lg"></i> Add Subject
+    </button>
+    {% endif %}
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Code</th><th>Name</th><th>Department</th><th>Class</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                {% for s in subjects %}
+                <tr>
+                    <td><span class="badge bg-secondary">{{ s.code }}</span></td>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.class_room.department if s.class_room and s.class_room.department else '—' }}</td>
+                    <td>{{ s.class_room.name if s.class_room else 'All Classes' }}</td>
+                    <td class="text-end">
+                        {% if session.get('role') in ['admin', 'superadmin'] %}
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editSubjectModal{{ s.id }}"><i class="bi bi-pencil"></i></button>
+                        <form action="{{ url_for('subject.delete', subject_id=s.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this subject?');">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted small">View only</span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <div class="modal fade" id="editSubjectModal{{ s.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="{{ url_for('subject.update', subject_id=s.id) }}" method="POST">
+                                <div class="modal-header"><h5 class="modal-title">Edit Subject</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                                <div class="modal-body">
+                                    <div class="mb-2"><label class="form-label">Name</label><input class="form-control" name="name" value="{{ s.name }}" required></div>
+                                    <div class="mb-2"><label class="form-label">Code</label><input class="form-control" name="code" value="{{ s.code }}" required></div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Class</label>
+                                        <select class="form-select" name="class_id">
+                                            <option value="">All Classes</option>
+                                            {% for c in classes %}
+                                            <option value="{{ c.id }}" {{ 'selected' if s.class_id == c.id }}>{{ c.display_name() }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer"><button class="btn btn-primary" type="submit">Save</button></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-4">No subjects created yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="createSubjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('subject.create') }}" method="POST">
+                <div class="modal-header"><h5 class="modal-title">Add Subject</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="mb-2"><label class="form-label">Name *</label><input class="form-control" name="name" placeholder="e.g. Data Structures" required></div>
+                    <div class="mb-2"><label class="form-label">Code *</label><input class="form-control" name="code" placeholder="e.g. CS201" required></div>
+                    <div class="mb-2">
+                        <label class="form-label">Class</label>
+                        <select class="form-select" name="class_id">
+                            <option value="">All Classes</option>
+                            {% for c in classes %}
+                            <option value="{{ c.id }}">{{ c.display_name() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary" type="submit">Create</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

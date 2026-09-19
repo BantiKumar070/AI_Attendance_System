@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Capture Face - {{ student.name }}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mx-auto" style="max-width: 800px;">
+    <div class="card-header">
+        <i class="bi bi-camera-video-fill"></i> Face Capture — {{ student.name }} ({{ student.roll_number }})
+    </div>
+    <div class="card-body text-center">
+        <p class="text-muted">
+            Look directly at the camera and slowly turn your head left/right for varied angles.
+            The system will automatically capture <strong>{{ progress.required }}</strong> images.
+        </p>
+
+        <div class="webcam-frame mx-auto mb-3">
+            <video id="webcamVideo" autoplay playsinline></video>
+            <canvas id="captureCanvas" class="d-none"></canvas>
+            <div id="faceOverlayMsg" class="overlay-msg"></div>
+        </div>
+
+        <div class="progress mb-2" style="height: 24px;">
+            <div id="captureProgressBar" class="progress-bar bg-primary" style="width: {{ (progress.captured / progress.required * 100) | round(1) }}%">
+                <span id="captureProgressText">{{ progress.captured }} / {{ progress.required }}</span>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-2 mt-3">
+            <button id="startCaptureBtn" class="btn btn-primary"><i class="bi bi-play-fill"></i> Start Capture</button>
+            <button id="stopCaptureBtn" class="btn btn-outline-secondary d-none"><i class="bi bi-stop-fill"></i> Stop</button>
+            <button id="generateEncodingsBtn" class="btn btn-success d-none"><i class="bi bi-cpu-fill"></i> Generate Face Encodings</button>
+            <a href="{{ url_for('student.list_students') }}" class="btn btn-outline-secondary">Back to List</a>
+        </div>
+
+        <div id="captureStatusMsg" class="mt-3"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const STUDENT_ID = {{ student.id }};
+    const REQUIRED_SAMPLES = {{ progress.required }};
+    const CAPTURE_FRAME_URL = "{{ url_for('student.capture_frame', student_id=student.id) }}";
+    const GENERATE_ENCODINGS_URL = "{{ url_for('student.generate_encodings', student_id=student.id) }}";
+</script>
+<script src="{{ url_for('static', filename='js/webcam.js') }}"></script>
+{% endblock %}

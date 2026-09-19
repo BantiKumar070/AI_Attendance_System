@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Take Attendance{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span><span class="live-dot me-2"></span><i class="bi bi-camera-reels-fill"></i> Live Recognition</span>
+                <div class="d-flex align-items-center gap-2">
+                    <label for="subjectSelect" class="form-label mb-0 small text-muted">Lecture / Subject *</label>
+                    <select id="subjectSelect" class="form-select form-select-sm" style="min-width: 220px;" required>
+                        <option value="" selected disabled>-- Select a subject --</option>
+                        {% for s in subjects %}
+                        <option value="{{ s.id }}">{{ s.name }} ({{ s.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="card-body text-center">
+                {% if not subjects %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i> No subjects exist yet.
+                    <a href="{{ url_for('subject.list_subjects') }}">Add a subject</a> before taking attendance —
+                    every lecture's attendance must be tied to a subject.
+                </div>
+                {% endif %}
+                <div id="activeSubjectBanner" class="alert alert-info d-none py-2 mb-3">
+                    <i class="bi bi-journal-check"></i> Taking attendance for: <strong id="activeSubjectName"></strong>
+                </div>
+                <div class="webcam-frame mx-auto">
+                    <video id="webcamVideo" autoplay playsinline></video>
+                    <canvas id="overlayCanvas"></canvas>
+                    <canvas id="captureCanvas" class="d-none"></canvas>
+                </div>
+                <div class="d-flex justify-content-center gap-2 mt-3">
+                    <button id="startRecognitionBtn" class="btn btn-primary" {{ 'disabled' if not subjects }}><i class="bi bi-play-fill"></i> Start</button>
+                    <button id="stopRecognitionBtn" class="btn btn-outline-secondary d-none"><i class="bi bi-stop-fill"></i> Stop</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header"><i class="bi bi-list-check"></i> Marked This Session</div>
+            <div class="card-body p-0" style="max-height: 480px; overflow-y: auto;">
+                <ul id="recognitionLog" class="list-group list-group-flush"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const PROCESS_FRAME_URL = "{{ url_for('face.process_frame') }}";
+</script>
+<script src="{{ url_for('static', filename='js/live_recognition.js') }}"></script>
+{% endblock %}

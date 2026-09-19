@@ -1,0 +1,28 @@
+<header class="app-navbar">
+    <button class="btn btn-sm btn-light d-lg-none" id="sidebarToggle">
+        <i class="bi bi-list fs-4"></i>
+    </button>
+
+    <h5 class="mb-0 page-title">{{ page_heading }}</h5>
+
+    <div class="navbar-right">
+        <span class="text-muted small d-none d-md-inline">
+            <i class="bi bi-clock"></i> <span id="liveClock"></span>
+        </span>
+        <div class="dropdown">
+            <button class="btn btn-light d-flex align-items-center gap-2" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle fs-5"></i>
+                <span class="d-none d-md-inline">{{ session.get('full_name', 'Admin') }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><span class="dropdown-item-text text-muted small">Role: {{ session.get('role', 'admin') }}</span></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}"><i class="bi bi-shield-lock"></i> Change Password</a></li>
+                {% if session.get('role') in ['admin', 'superadmin'] %}
+                <li><a class="dropdown-item" href="{{ url_for('settings.index') }}"><i class="bi bi-gear"></i> Settings</a></li>
+                {% endif %}
+                <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</header>

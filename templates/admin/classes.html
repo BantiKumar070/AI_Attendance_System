@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Classes{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Class Management</h5>
+    {% if session.get('role') in ['admin', 'superadmin'] %}
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createClassModal">
+        <i class="bi bi-plus-lg"></i> Add Class
+    </button>
+    {% endif %}
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Department</th><th>Name</th><th>Section</th><th>Academic Year</th><th>Students</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                {% for c in classes %}
+                <tr>
+                    <td>{% if c.department %}<span class="badge bg-secondary">{{ c.department }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td>{{ c.name }}</td>
+                    <td>{{ c.section or '-' }}</td>
+                    <td>{{ c.academic_year or '-' }}</td>
+                    <td>{{ c.students.count() }}</td>
+                    <td class="text-end">
+                        {% if session.get('role') in ['admin', 'superadmin'] %}
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editClassModal{{ c.id }}"><i class="bi bi-pencil"></i></button>
+                        <form action="{{ url_for('class_room.delete', class_id=c.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this class?');">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted small">View only</span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <div class="modal fade" id="editClassModal{{ c.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="{{ url_for('class_room.update', class_id=c.id) }}" method="POST">
+                                <div class="modal-header"><h5 class="modal-title">Edit Class</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                                <div class="modal-body">
+                                    <div class="mb-2"><label class="form-label">Department</label><input class="form-control" name="department" value="{{ c.department or '' }}" placeholder="e.g. B.Tech, BCA"></div>
+                                    <div class="mb-2"><label class="form-label">Name</label><input class="form-control" name="name" value="{{ c.name }}" required></div>
+                                    <div class="mb-2"><label class="form-label">Section</label><input class="form-control" name="section" value="{{ c.section or '' }}"></div>
+                                    <div class="mb-2"><label class="form-label">Academic Year</label><input class="form-control" name="academic_year" value="{{ c.academic_year or '' }}"></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="is_active" {{ 'checked' if c.is_active }}><label class="form-check-label">Active</label></div>
+                                </div>
+                                <div class="modal-footer"><button class="btn btn-primary" type="submit">Save</button></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No classes created yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="createClassModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('class_room.create') }}" method="POST">
+                <div class="modal-header"><h5 class="modal-title">Add Class</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="mb-2"><label class="form-label">Department</label><input class="form-control" name="department" placeholder="e.g. B.Tech, BCA, MBA"></div>
+                    <div class="mb-2"><label class="form-label">Name *</label><input class="form-control" name="name" placeholder="e.g. Computer Science - Year 2" required></div>
+                    <div class="mb-2"><label class="form-label">Section</label><input class="form-control" name="section" placeholder="e.g. A"></div>
+                    <div class="mb-2"><label class="form-label">Academic Year</label><input class="form-control" name="academic_year" placeholder="e.g. 2025-2026"></div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary" type="submit">Create</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

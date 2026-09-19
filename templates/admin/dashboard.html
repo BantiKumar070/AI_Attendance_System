@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card bg-primary-soft">
+            <i class="bi bi-people-fill stat-icon text-primary"></i>
+            <div>
+                <div class="stat-value">{{ overview.total_students }}</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-success-soft">
+            <i class="bi bi-check-circle-fill stat-icon text-success"></i>
+            <div>
+                <div class="stat-value">{{ overview.present_today }}</div>
+                <div class="stat-label">Present Today</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-danger-soft">
+            <i class="bi bi-x-circle-fill stat-icon text-danger"></i>
+            <div>
+                <div class="stat-value">{{ overview.absent_today }}</div>
+                <div class="stat-label">Absent Today</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-info-soft">
+            <i class="bi bi-graph-up-arrow stat-icon text-info"></i>
+            <div>
+                <div class="stat-value">{{ overview.attendance_percentage }}%</div>
+                <div class="stat-label">Attendance Rate</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-header"><i class="bi bi-journal-check"></i> Today's Lectures</div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Subject</th><th>Code</th><th>Marked Present</th></tr></thead>
+            <tbody>
+                {% for row in subject_breakdown %}
+                <tr>
+                    <td>{{ row.name }}</td>
+                    <td><span class="badge bg-secondary">{{ row.code }}</span></td>
+                    <td>{{ row.present_count }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="text-center text-muted py-4">No lecture attendance taken yet today.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header"><i class="bi bi-bar-chart-fill"></i> Weekly Attendance Trend</div>
+            <div class="card-body"><canvas id="weeklyTrendChart" height="110"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header"><i class="bi bi-pie-chart-fill"></i> Students per Class</div>
+            <div class="card-body"><canvas id="classDistributionChart" height="200"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mt-3">
+    <div class="card-header"><i class="bi bi-clock-history"></i> Recent Attendance Activity</div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr><th>Roll No.</th><th>Name</th><th>Date</th><th>Time</th><th>Status</th><th>Marked By</th></tr>
+            </thead>
+            <tbody>
+                {% for record in recent_attendance %}
+                <tr>
+                    <td>{{ record.student.roll_number if record.student else '-' }}</td>
+                    <td>{{ record.student.name if record.student else '-' }}</td>
+                    <td>{{ record.attendance_date }}</td>
+                    <td>{{ record.time_in }}</td>
+                    <td><span class="badge bg-{{ 'success' if record.status == 'present' else 'warning' }}">{{ record.status | title }}</span></td>
+                    <td>{{ record.marked_by | replace('_', ' ') | title }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No attendance records yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const weeklyTrendData = {{ weekly_trend | tojson }};
+    const classDistributionData = {{ class_distribution | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

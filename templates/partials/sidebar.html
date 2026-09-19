@@ -1,0 +1,46 @@
+<aside class="app-sidebar" id="appSidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-camera-video-fill"></i>
+        <span>AI Attendance</span>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="{{ url_for('dashboard.index') }}" class="nav-link {{ 'active' if request.endpoint == 'dashboard.index' }}">
+            <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+        <a href="{{ url_for('student.list_students') }}" class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('student.') }}">
+            <i class="bi bi-people-fill"></i> Students
+        </a>
+        <a href="{{ url_for('class_room.list_classes') }}" class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('class_room.') }}">
+            <i class="bi bi-building"></i> Classes
+        </a>
+        <a href="{{ url_for('subject.list_subjects') }}" class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('subject.') }}">
+            <i class="bi bi-journal-bookmark-fill"></i> Subjects
+        </a>
+        <a href="{{ url_for('face.live') }}" class="nav-link {{ 'active' if request.endpoint == 'face.live' }}">
+            <i class="bi bi-camera-reels-fill"></i> Take Attendance
+        </a>
+        <a href="{{ url_for('attendance.history') }}" class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('attendance.') }}">
+            <i class="bi bi-calendar-check-fill"></i> Attendance History
+        </a>
+        {% if session.get('role') in ['admin', 'superadmin'] %}
+        <a href="{{ url_for('log.index') }}" class="nav-link {{ 'active' if request.endpoint == 'log.index' }}">
+            <i class="bi bi-list-ul"></i> Logs
+        </a>
+        <a href="{{ url_for('settings.index') }}" class="nav-link {{ 'active' if request.endpoint == 'settings.index' }}">
+            <i class="bi bi-gear-fill"></i> Settings
+        </a>
+        {% endif %}
+        {% if session.get('role') == 'superadmin' %}
+        <a href="{{ url_for('teacher.list_teachers') }}" class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('teacher.') }}">
+            <i class="bi bi-person-badge-fill"></i> Manage Teachers
+        </a>
+        {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="{{ url_for('auth.logout') }}" class="nav-link text-danger">
+            <i class="bi bi-box-arrow-right"></i> Logout
+        </a>
+    </div>
+</aside>
