@@ -34,6 +34,7 @@ from flask import current_app
 from PIL import Image
 
 from models import FaceEncoding, Student
+from services.settings_service import SettingsService
 from utils.extensions import db
 from utils.helpers import student_dataset_folder
 from utils.logger import get_logger
@@ -104,10 +105,30 @@ class FaceService:
             return 0
         return len([f for f in os.listdir(folder) if f.lower().endswith((".jpg", ".jpeg", ".png"))])
 
+    # def capture_progress(self, student: Student) -> Dict[str, int]:
+    #     """Return {"captured": n, "required": N} for the capture-wizard progress bar."""
+    #     required = current_app.config["FACE_DATASET_SAMPLES"]
+    #     return {"captured": self._current_image_count(student), "required": required}
+    
     def capture_progress(self, student: Student) -> Dict[str, int]:
-        """Return {"captured": n, "required": N} for the capture-wizard progress bar."""
-        required = current_app.config["FACE_DATASET_SAMPLES"]
-        return {"captured": self._current_image_count(student), "required": required}
+        """Return the current capture count and admin-configured target."""
+
+        configured = SettingsService().get(
+            "dataset_samples_per_student",
+            str(current_app.config["FACE_DATASET_SAMPLES"]),
+        )
+
+        try:
+            required = int(configured)
+        except (TypeError, ValueError):
+            required = current_app.config["FACE_DATASET_SAMPLES"]
+
+        required = max(1, required)
+
+        return {
+            "captured": self._current_image_count(student),
+            "required": required,
+        }
 
     # ------------------------------------------------------------------
     # STEP 2: Encoding generation
