@@ -43,5 +43,6 @@
     const CAPTURE_FRAME_URL = "{{ url_for('student.capture_frame', student_id=student.id) }}";
     const GENERATE_ENCODINGS_URL = "{{ url_for('student.generate_encodings', student_id=student.id) }}";
 </script>
-<script src="{{ url_for('static', filename='js/webcam.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='js/webcam.js') }}"></script> -->
+ <script src="{{ url_for('static', filename='js/webcam.js') }}?v=2"></script>
 {% endblock %}

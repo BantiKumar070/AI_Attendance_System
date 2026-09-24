@@ -60,8 +60,9 @@ def create_app(config_object=None) -> Flask:
     # ---------------- Extensions ----------------
     db.init_app(app)
     migrate.init_app(app, db)
-    if app.config.get("ENABLE_EMAIL_NOTIFICATIONS"):
-        mail.init_app(app)
+    # Initialize Flask-Mail once at startup. Actual sending is guarded by
+    # both the environment configuration and the admin Settings toggle.
+    mail.init_app(app)
 
     # ---------------- Blueprints ----------------
     _register_blueprints(app)

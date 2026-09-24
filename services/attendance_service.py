@@ -1,3 +1,4 @@
+
 """
 services/attendance_service.py
 ===============================
@@ -20,6 +21,7 @@ from sqlalchemy.exc import IntegrityError
 
 from models import Attendance, AttendanceStatus, MarkedBy, Student, SystemLog, LogLevel
 from services.settings_service import SettingsService
+from services.email_service import EmailService
 from utils.extensions import db
 from utils.logger import get_logger
 
@@ -31,6 +33,7 @@ class AttendanceService:
 
     def __init__(self) -> None:
         self.settings_service = SettingsService()
+        self.email_service = EmailService()
 
     def _get_late_cutoff_hour(self) -> Optional[int]:
         """
@@ -110,6 +113,31 @@ class AttendanceService:
             "ATTENDANCE_MARKED",
             f"Attendance marked for '{student.name}' ({student.roll_number}) via {marked_by}.",
         )
+
+        # Email notification is intentionally best-effort: attendance must
+        # remain successful even if SMTP is unavailable or misconfigured.
+        if student.email:
+            subject_name = "Attendance"
+            subject_code = ""
+            if subject_id:
+                from models import Subject
+
+                subject = Subject.query.get(subject_id)
+                if subject:
+                    subject_name = subject.name
+                    subject_code = subject.code
+
+            self.email_service.send_attendance_notification(
+                to_email=student.email,
+                student_name=student.name,
+                roll_number=student.roll_number,
+                attendance_date=record.attendance_date.isoformat(),
+                time_in=record.time_in.strftime("%H:%M:%S"),
+                status=record.status,
+                subject_name=subject_name,
+                subject_code=subject_code,
+            )
+
         logger.info("Attendance marked: student_id=%s subject_id=%s status=%s", student_id, subject_id, status)
         return record, True, None
 

@@ -1,3 +1,4 @@
+
 """
 services/email_service.py
 ==========================
@@ -15,6 +16,7 @@ from flask import current_app, url_for
 from flask_mail import Message
 
 from utils.extensions import mail
+from services.settings_service import SettingsService
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -25,8 +27,10 @@ class EmailService:
 
     def is_configured(self) -> bool:
         """True only if email notifications are enabled AND credentials are present."""
+        settings_enabled = SettingsService().get("enable_email_notifications", "false") == "true"
         return bool(
-            current_app.config.get("ENABLE_EMAIL_NOTIFICATIONS")
+            settings_enabled
+            and current_app.config.get("ENABLE_EMAIL_NOTIFICATIONS")
             and current_app.config.get("MAIL_USERNAME")
             and current_app.config.get("MAIL_PASSWORD")
         )
@@ -61,3 +65,48 @@ class EmailService:
         except Exception:  # pragma: no cover - network/SMTP errors shouldn't crash the request
             logger.exception("Failed to send password reset email to %s", to_email)
             return False
+    def send_attendance_notification(
+        self,
+        to_email: str,
+        student_name: str,
+        roll_number: str,
+        attendance_date: str,
+        time_in: str,
+        status: str,
+        subject_name: str = "Attendance",
+        subject_code: str = "",
+    ) -> bool:
+        """Send a confirmation email after attendance is successfully marked."""
+        if not to_email or not self.is_configured():
+            logger.warning(
+                "Attendance email skipped for %s: email is not configured or student has no email.",
+                roll_number,
+            )
+            return False
+
+        status_label = status.replace("_", " ").title()
+        subject_label = f"{subject_name} ({subject_code})" if subject_code else subject_name
+
+        try:
+            message = Message(
+                subject=f"Attendance Marked - {subject_label}",
+                recipients=[to_email],
+                body=(
+                    f"Hi {student_name},\n\n"
+                    f"Your attendance has been recorded successfully.\n\n"
+                    f"Student: {student_name}\n"
+                    f"Roll Number: {roll_number}\n"
+                    f"Subject: {subject_label}\n"
+                    f"Date: {attendance_date}\n"
+                    f"Time: {time_in}\n"
+                    f"Status: {status_label}\n\n"
+                    f"This is an automated message from the AI-Powered Automatic Attendance System.\n"
+                ),
+            )
+            mail.send(message)
+            logger.info("Attendance email sent to %s for student %s.", to_email, roll_number)
+            return True
+        except Exception:
+            logger.exception("Failed to send attendance email to %s", to_email)
+            return False
+
