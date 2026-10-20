@@ -32,6 +32,7 @@
         await new Promise((resolve) => (video.onloadedmetadata = resolve));
         overlayCanvas.width = video.videoWidth;
         overlayCanvas.height = video.videoHeight;
+        
     }
 
     function stopWebcam() {
@@ -75,21 +76,66 @@
         });
     }
 
+    // function addLogEntry(face) {
+    //     const key = face.roll_number || face.name;
+    //     if (face.status !== "marked" || markedThisSession.has(key)) return;
+    //     markedThisSession.add(key);
+
+    //     const subjectLabel = subjectSelect.options[subjectSelect.selectedIndex]?.text || "";
+    //     const li = document.createElement("li");
+    //     li.className = "list-group-item";
+    //     li.innerHTML = `
+    //         <span>
+    //             <i class="bi bi-check-circle-fill text-success"></i> ${face.name} (${face.roll_number})
+    //             <span class="d-block text-muted small">${subjectLabel}</span>
+    //         </span>
+    //         <span class="text-muted small">${new Date().toLocaleTimeString()}</span>
+    //     `;
+    //     recognitionLog.prepend(li);
+    // }
+
     function addLogEntry(face) {
         const key = face.roll_number || face.name;
-        if (face.status !== "marked" || markedThisSession.has(key)) return;
+
+        // Show only newly marked attendance.
+        // Ignore already_marked, cooldown, unknown and error statuses.
+        if (face.status !== "marked" || markedThisSession.has(key)) {
+            return;
+        }
+
         markedThisSession.add(key);
 
-        const subjectLabel = subjectSelect.options[subjectSelect.selectedIndex]?.text || "";
+        const subjectLabel =
+            subjectSelect.options[subjectSelect.selectedIndex]?.text || "";
+
         const li = document.createElement("li");
         li.className = "list-group-item";
-        li.innerHTML = `
-            <span>
-                <i class="bi bi-check-circle-fill text-success"></i> ${face.name} (${face.roll_number})
-                <span class="d-block text-muted small">${subjectLabel}</span>
-            </span>
-            <span class="text-muted small">${new Date().toLocaleTimeString()}</span>
-        `;
+
+        const details = document.createElement("span");
+
+        const icon = document.createElement("i");
+        icon.className = "bi bi-check-circle-fill text-success me-1";
+
+        details.appendChild(icon);
+        details.appendChild(
+            document.createTextNode(
+                ` ${face.name} (${face.roll_number})`
+            )
+        );
+
+        const subject = document.createElement("span");
+        subject.className = "d-block text-muted small";
+        subject.textContent = subjectLabel;
+
+        details.appendChild(subject);
+
+        const time = document.createElement("span");
+        time.className = "text-muted small";
+        time.textContent = new Date().toLocaleTimeString();
+
+        li.appendChild(details);
+        li.appendChild(time);
+
         recognitionLog.prepend(li);
     }
 

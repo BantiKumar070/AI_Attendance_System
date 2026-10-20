@@ -92,9 +92,13 @@
       const LOGOUT_URL = "{{ url_for('auth.logout') }}";
     </script>
 
-    <!-- Bootstrap 5 JS Bundle -->
+    <!-- Bootstrap 5 JS Bundle
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/boo
-    tstrap.bundle.min.js"></script>
+    tstrap.bundle.min.js"></script> -->
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+
     <script src="{{ url_for('static', filename='js/session_timeout.js') }}"></script>
     {% else %} {% include "partials/flash_messages.html" %} {% block
     guest_content %}{% endblock %} {% endif %}
